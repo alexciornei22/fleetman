@@ -1,3 +1,12 @@
 spring:
   application:
     name: fleetman
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/fleetman
+    username: admin
+    password: password
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
