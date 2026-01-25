@@ -1,4 +1,4 @@
-package ro.upb.acs.fleetman.vehicle;
+package ro.upb.acs.fleetman.vehicle.base;
 
 import jakarta.persistence.*;
 
@@ -20,6 +20,9 @@ public abstract class Vehicle {
     @Column(name = "mileage")
     private Integer mileage;
 
+    @Embedded
+    private PowertrainInformation powertrainInformation;
+
     public String getLicensePlate() {
         return licensePlate;
     }
@@ -34,5 +37,13 @@ public abstract class Vehicle {
 
     public void setMileage(Integer mileage) {
         this.mileage = mileage;
+    }
+
+    public PowertrainInformation getPowertrainInformation() {
+        return powertrainInformation;
+    }
+
+    public void setPowertrainInformation(PowertrainInformation powertrainInformation) {
+        this.powertrainInformation = powertrainInformation;
     }
 }

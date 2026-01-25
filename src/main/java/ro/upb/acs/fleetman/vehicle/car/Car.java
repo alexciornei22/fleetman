@@ -1,7 +1,7 @@
 package ro.upb.acs.fleetman.vehicle.car;
 
 import jakarta.persistence.*;
-import ro.upb.acs.fleetman.vehicle.Vehicle;
+import ro.upb.acs.fleetman.vehicle.base.Vehicle;
 
 @Entity
 @Table(name = "car")

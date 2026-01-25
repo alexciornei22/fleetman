@@ -3,7 +3,7 @@ package ro.upb.acs.fleetman.vehicle.truck;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import ro.upb.acs.fleetman.vehicle.Vehicle;
+import ro.upb.acs.fleetman.vehicle.base.Vehicle;
 
 @Entity
 @Table(name = "truck")
