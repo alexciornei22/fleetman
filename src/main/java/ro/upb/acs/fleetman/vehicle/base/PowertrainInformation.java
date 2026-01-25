@@ -16,7 +16,7 @@ public class PowertrainInformation {
     private Integer horsepower;
 
     @Column(name = "fuel_capacity_liters", nullable = false)
-    private Integer FuelCapacityLiters;
+    private Integer fuelCapacityLiters;
 
     @Column(name = "engine_displacement_cc", nullable = false)
     private Integer engineDisplacementCc;
@@ -41,11 +41,11 @@ public class PowertrainInformation {
     }
 
     public Integer getFuelCapacityLiters() {
-        return FuelCapacityLiters;
+        return fuelCapacityLiters;
     }
 
     public void setFuelCapacityLiters(Integer fuelCapacityLiters) {
-        FuelCapacityLiters = fuelCapacityLiters;
+        this.fuelCapacityLiters = fuelCapacityLiters;
     }
 
     public Integer getEngineDisplacementCc() {

@@ -39,11 +39,11 @@ public class Car extends Vehicle {
         this.numberOfDoors = numberOfDoors;
     }
 
-    public Boolean getChildSeatCompatible() {
+    public Boolean isChildSeatCompatible() {
         return isChildSeatCompatible;
     }
 
-    public void setChildSeatCompatible(Boolean childSeatCompatible) {
+    public void setIsChildSeatCompatible(Boolean childSeatCompatible) {
         isChildSeatCompatible = childSeatCompatible;
     }
 

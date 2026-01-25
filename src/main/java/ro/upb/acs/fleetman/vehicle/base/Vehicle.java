@@ -14,7 +14,7 @@ public abstract class Vehicle {
     @Column(name = "vin", unique = true, nullable = false)
     private String vin;
 
-    @Column(name = "license_plate")
+    @Column(name = "license_plate", unique = true)
     private String licensePlate;
 
     @Column(name = "mileage")
@@ -22,6 +22,23 @@ public abstract class Vehicle {
 
     @Embedded
     private PowertrainInformation powertrainInformation;
+
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getVin() {
+        return vin;
+    }
+
+    public void setVin(String vin) {
+        this.vin = vin;
+    }
 
     public String getLicensePlate() {
         return licensePlate;
