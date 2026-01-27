@@ -8,6 +8,7 @@ import ro.upb.acs.fleetman.common.PaginationMapper;
 import ro.upb.acs.fleetman.employee.driver.Driver;
 import ro.upb.acs.fleetman.employee.driver.DriverRepository;
 import ro.upb.acs.fleetman.exception.InvalidResourceReferenceException;
+import ro.upb.acs.fleetman.exception.ResourceNotFoundException;
 import ro.upb.acs.fleetman.vehicle.base.Vehicle;
 import ro.upb.acs.fleetman.vehicle.base.VehicleRepository;
 
@@ -31,10 +32,10 @@ public class TripService {
 
     public TripDto createTrip(CreateTripDto createTripDto) {
         Vehicle vehicle = vehicleRepository.findById(createTripDto.vehicleId())
-                .orElseThrow(() -> new InvalidResourceReferenceException("Vehicle", createTripDto.vehicleId().toString()));
+            .orElseThrow(() -> new InvalidResourceReferenceException("Vehicle", createTripDto.vehicleId().toString()));
 
         Driver driver = driverRepository.findById(createTripDto.driverId())
-                .orElseThrow(() -> new InvalidResourceReferenceException("Driver", createTripDto.driverId().toString()));
+            .orElseThrow(() -> new InvalidResourceReferenceException("Driver", createTripDto.driverId().toString()));
 
         var trip = tripMapper.toEntity(createTripDto, vehicle, driver);
         return tripMapper.toDto(tripRepository.save(trip));
@@ -47,5 +48,13 @@ public class TripService {
 
     public void deleteTrip(Long id) {
         tripRepository.deleteById(id);
+    }
+
+    public PaginatedResponseDto<TripDto> getTripsForVehicle(Long vehicleId, Pageable pageable) {
+        vehicleRepository.findById(vehicleId)
+            .orElseThrow(() -> new ResourceNotFoundException("Vehicle", vehicleId.toString()));
+
+        Page<TripDto> page = tripRepository.findByVehicleId(vehicleId, pageable).map(tripMapper::toDto);
+        return paginationMapper.toPaginatedResponse(page);
     }
 }

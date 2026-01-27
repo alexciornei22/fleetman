@@ -1,6 +1,9 @@
 package ro.upb.acs.fleetman.vehicle.base;
 
 import jakarta.persistence.*;
+import ro.upb.acs.fleetman.trip.Trip;
+
+import java.util.List;
 
 @Entity
 @Table(name = "vehicle")
@@ -23,6 +26,8 @@ public abstract class Vehicle {
     @Embedded
     private PowertrainInformation powertrainInformation;
 
+    @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Trip> trips;
 
     public Long getId() {
         return id;
@@ -62,5 +67,13 @@ public abstract class Vehicle {
 
     public void setPowertrainInformation(PowertrainInformation powertrainInformation) {
         this.powertrainInformation = powertrainInformation;
+    }
+
+    public List<Trip> getTrips() {
+        return trips;
+    }
+
+    public void setTrips(List<Trip> trips) {
+        this.trips = trips;
     }
 }
