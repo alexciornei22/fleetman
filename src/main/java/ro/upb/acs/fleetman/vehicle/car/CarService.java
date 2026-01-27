@@ -1,7 +1,11 @@
 package ro.upb.acs.fleetman.vehicle.car;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import ro.upb.acs.fleetman.common.PaginatedResponseDto;
+import ro.upb.acs.fleetman.common.PaginationMapper;
 import ro.upb.acs.fleetman.exception.FieldConflictException;
 
 @Service
@@ -37,5 +41,14 @@ public class CarService {
             }
             throw new RuntimeException(e);
         }
+    }
+
+    public PaginatedResponseDto<CarDto> getAllCars(Pageable pageable) {
+        Page<CarDto> page = carRepository.findAll(pageable).map(carMapper::toDto);
+        return PaginationMapper.toPaginatedResponse(page);
+    }
+
+    public void deleteCar(Long id) {
+        carRepository.deleteById(id);
     }
 }
