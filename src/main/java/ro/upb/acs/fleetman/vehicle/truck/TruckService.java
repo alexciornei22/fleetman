@@ -1,4 +1,4 @@
-package ro.upb.acs.fleetman.vehicle.car;
+package ro.upb.acs.fleetman.vehicle.truck;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -9,31 +9,31 @@ import ro.upb.acs.fleetman.common.PaginationMapper;
 import ro.upb.acs.fleetman.exception.FieldConflictException;
 
 @Service
-public class CarService {
+public class TruckService {
 
-    private final CarMapper carMapper;
+    private final TruckMapper truckMapper;
     private final PaginationMapper paginationMapper;
-    private final CarRepository carRepository;
+    private final TruckRepository truckRepository;
 
     private static final String VIN_UNIQUE_INDEX = "uc_vehicle_vin";
     private static final String LICENSE_PLATE_UNIQUE_INDEX = "uc_vehicle_license_plate";
 
     private static final String VIN_CONFLICT_ERROR_FIELD = "vin";
-    private static final String VIN_CONFLICT_ERROR_MESSAGE = "A car with the provided VIN already exists.";
+    private static final String VIN_CONFLICT_ERROR_MESSAGE = "A truck with the provided VIN already exists.";
     private static final String LICENSE_PLATE_CONFLICT_ERROR_FIELD = "licensePlate";
-    private static final String LICENSE_PLATE_CONFLICT_ERROR_MESSAGE = "A car with the provided license plate already exists.";
+    private static final String LICENSE_PLATE_CONFLICT_ERROR_MESSAGE = "A truck with the provided license plate already exists.";
 
-    public CarService(CarMapper carMapper, PaginationMapper paginationMapper, CarRepository carRepository) {
-        this.carMapper = carMapper;
+    public TruckService(TruckMapper truckMapper, PaginationMapper paginationMapper, TruckRepository truckRepository) {
+        this.truckMapper = truckMapper;
         this.paginationMapper = paginationMapper;
-        this.carRepository = carRepository;
+        this.truckRepository = truckRepository;
     }
 
-    public CarDto createCar(CreateCarDto createCarDto) {
-        var car = carMapper.toEntity(createCarDto);
+    public TruckDto createTruck(CreateTruckDto createTruckDto) {
+        var truck = truckMapper.toEntity(createTruckDto);
 
         try {
-            return carMapper.toDto(carRepository.save(car));
+            return truckMapper.toDto(truckRepository.save(truck));
         } catch (DataIntegrityViolationException e) {
             if (e.getMessage().contains(VIN_UNIQUE_INDEX)) {
                 throw new FieldConflictException(VIN_CONFLICT_ERROR_FIELD, VIN_CONFLICT_ERROR_MESSAGE);
@@ -45,12 +45,12 @@ public class CarService {
         }
     }
 
-    public PaginatedResponseDto<CarDto> getAllCars(Pageable pageable) {
-        Page<CarDto> page = carRepository.findAll(pageable).map(carMapper::toDto);
+    public PaginatedResponseDto<TruckDto> getAllTrucks(Pageable pageable) {
+        Page<TruckDto> page = truckRepository.findAll(pageable).map(truckMapper::toDto);
         return paginationMapper.toPaginatedResponse(page);
     }
 
-    public void deleteCar(Long id) {
-        carRepository.deleteById(id);
+    public void deleteTruck(Long id) {
+        truckRepository.deleteById(id);
     }
 }
