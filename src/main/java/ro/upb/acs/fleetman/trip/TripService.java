@@ -52,9 +52,17 @@ public class TripService {
 
     public PaginatedResponseDto<TripDto> getTripsForVehicle(Long vehicleId, Pageable pageable) {
         vehicleRepository.findById(vehicleId)
-            .orElseThrow(() -> new ResourceNotFoundException("Vehicle", vehicleId.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicle", vehicleId.toString()));
 
         Page<TripDto> page = tripRepository.findByVehicleId(vehicleId, pageable).map(tripMapper::toDto);
+        return paginationMapper.toPaginatedResponse(page);
+    }
+
+    public PaginatedResponseDto<TripDto> getTripsForDriver(Long driverId, Pageable pageable) {
+        driverRepository.findById(driverId)
+                .orElseThrow(() -> new ResourceNotFoundException("Driver", driverId.toString()));
+
+        Page<TripDto> page = tripRepository.findByDriverId(driverId, pageable).map(tripMapper::toDto);
         return paginationMapper.toPaginatedResponse(page);
     }
 }

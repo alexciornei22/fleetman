@@ -32,6 +32,11 @@ public class TripController {
         return tripService.getTripsForVehicle(vehicleId, pageable);
     }
 
+    @GetMapping("/driver/{driverId}")
+    public PaginatedResponseDto<TripDto> getTripsForDriver(@PathVariable Long driverId, Pageable pageable) {
+        return tripService.getTripsForDriver(driverId, pageable);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTrip(@PathVariable Long id) {

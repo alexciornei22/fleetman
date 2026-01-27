@@ -2,6 +2,7 @@ package ro.upb.acs.fleetman.employee.driver;
 
 import jakarta.persistence.*;
 import ro.upb.acs.fleetman.employee.Employee;
+import ro.upb.acs.fleetman.trip.Trip;
 
 import java.sql.Date;
 import java.util.List;
@@ -18,6 +19,9 @@ public class Driver extends Employee {
 
     @Column(name = "tachograph_card_number", unique = true, length = 20)
     private String tachographCardNumber;
+
+    @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Trip> trips;
 
     public List<License> getLicenses() {
         return licenses;
@@ -41,5 +45,13 @@ public class Driver extends Employee {
 
     public void setTachographCardNumber(String tachographCardNumber) {
         this.tachographCardNumber = tachographCardNumber;
+    }
+
+    public List<Trip> getTrips() {
+        return trips;
+    }
+
+    public void setTrips(List<Trip> trips) {
+        this.trips = trips;
     }
 }
