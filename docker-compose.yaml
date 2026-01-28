@@ -26,5 +26,20 @@ services:
     volumes:
       - ./pgadmin/servers.json:/pgadmin4/servers.json
 
+  mailpit:
+    image: axllent/mailpit:v1.28
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    volumes:
+      - mailpit-data:/data
+    environment:
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+      MP_SMTP_DISABLE_RDNS: true
+
 volumes:
   postgres-data:
+  mailpit-data:

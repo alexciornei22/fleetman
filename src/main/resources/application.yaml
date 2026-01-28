@@ -10,3 +10,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+
+  mail:
+    host: localhost
+    port: 1025

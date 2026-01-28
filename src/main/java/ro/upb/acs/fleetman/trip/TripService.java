@@ -1,5 +1,6 @@
 package ro.upb.acs.fleetman.trip;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -7,8 +8,10 @@ import ro.upb.acs.fleetman.common.PaginatedResponseDto;
 import ro.upb.acs.fleetman.common.PaginationMapper;
 import ro.upb.acs.fleetman.employee.driver.Driver;
 import ro.upb.acs.fleetman.employee.driver.DriverRepository;
+import ro.upb.acs.fleetman.employee.fleetmanager.FleetManager;
 import ro.upb.acs.fleetman.exception.InvalidResourceReferenceException;
 import ro.upb.acs.fleetman.exception.ResourceNotFoundException;
+import ro.upb.acs.fleetman.trip.event.TripCreatedEvent;
 import ro.upb.acs.fleetman.vehicle.base.Vehicle;
 import ro.upb.acs.fleetman.vehicle.base.VehicleRepository;
 
@@ -20,14 +23,16 @@ public class TripService {
     private final TripRepository tripRepository;
     private final VehicleRepository vehicleRepository;
     private final DriverRepository driverRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public TripService(TripMapper tripMapper, PaginationMapper paginationMapper, TripRepository tripRepository,
-                       VehicleRepository vehicleRepository, DriverRepository driverRepository) {
+                       VehicleRepository vehicleRepository, DriverRepository driverRepository, ApplicationEventPublisher eventPublisher) {
         this.tripMapper = tripMapper;
         this.paginationMapper = paginationMapper;
         this.tripRepository = tripRepository;
         this.vehicleRepository = vehicleRepository;
         this.driverRepository = driverRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public TripDto createTrip(CreateTripDto createTripDto) {
@@ -38,7 +43,12 @@ public class TripService {
             .orElseThrow(() -> new InvalidResourceReferenceException("Driver", createTripDto.driverId().toString()));
 
         var trip = tripMapper.toEntity(createTripDto, vehicle, driver);
-        return tripMapper.toDto(tripRepository.save(trip));
+        Trip newTrip = tripRepository.save(trip);
+
+        FleetManager fleetManager = vehicle.getFleetManager();
+        eventPublisher.publishEvent(new TripCreatedEvent(newTrip, driver, fleetManager));
+
+        return tripMapper.toDto(newTrip);
     }
 
     public PaginatedResponseDto<TripDto> getAllTrips(Pageable pageable) {
