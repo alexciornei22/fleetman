@@ -1,7 +1,6 @@
 package ro.upb.acs.fleetman.vehicle.base;
 
 import jakarta.persistence.*;
-import org.springframework.data.jpa.repository.EntityGraph;
 import ro.upb.acs.fleetman.employee.fleetmanager.FleetManager;
 import ro.upb.acs.fleetman.trip.Trip;
 
@@ -28,7 +27,7 @@ public abstract class Vehicle {
     @Embedded
     private PowertrainInformation powertrainInformation;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(optional = false)
     private FleetManager fleetManager;
 
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true)

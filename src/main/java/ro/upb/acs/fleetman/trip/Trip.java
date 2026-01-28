@@ -15,11 +15,9 @@ public class Trip {
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "vehicle_id", nullable = false)
     private Vehicle vehicle;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "driver_id", nullable = false)
     private Driver driver;
 
     @Column(name = "start_location", nullable = false)

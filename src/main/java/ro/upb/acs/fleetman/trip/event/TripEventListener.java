@@ -19,7 +19,7 @@ public class TripEventListener {
     }
 
     @Async
-    @EventListener
+    @EventListener(condition = "#event.trip().distanceKm != null && #event.trip().distanceKm >= 100")
     public void handleTripCreatedEvent(TripCreatedEvent event) {
         logger.info("Handling TripCreatedEvent for trip ID: {} on thread: {}",
             event.trip().getId(),
