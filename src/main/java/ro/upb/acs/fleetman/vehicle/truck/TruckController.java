@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ro.upb.acs.fleetman.common.PaginatedResponseDto;
+import ro.upb.acs.fleetman.config.LogResponse;
 
 @RestController
 @RequestMapping("/api/trucks")
@@ -18,17 +19,20 @@ public class TruckController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @LogResponse
     public TruckDto createTruck(@Validated @RequestBody CreateTruckDto createTruckDto) {
         return truckService.createTruck(createTruckDto);
     }
 
     @GetMapping
+    @LogResponse
     public PaginatedResponseDto<TruckDto> getAllTrucks(Pageable pageable) {
         return truckService.getAllTrucks(pageable);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @LogResponse
     public void deleteTruck(@PathVariable Long id) {
         truckService.deleteTruck(id);
     }
