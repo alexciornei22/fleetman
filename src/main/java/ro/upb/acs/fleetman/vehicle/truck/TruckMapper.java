@@ -1,6 +1,7 @@
 package ro.upb.acs.fleetman.vehicle.truck;
 
 import org.springframework.stereotype.Component;
+import ro.upb.acs.fleetman.employee.fleetmanager.FleetManager;
 import ro.upb.acs.fleetman.vehicle.base.PowertrainInformation;
 import ro.upb.acs.fleetman.vehicle.base.PowertrainInformationDto;
 
@@ -27,6 +28,10 @@ public class TruckMapper {
         truck.setNumberOfAxles(request.numberOfAxles());
         truck.setHasRefrigerationUnit(request.hasRefrigerationUnit());
 
+        FleetManager fleetManager = new FleetManager();
+        fleetManager.setId(request.fleetManagerId());
+        truck.setFleetManager(fleetManager);
+
         return truck;
     }
 
@@ -48,7 +53,8 @@ public class TruckMapper {
             powertrainInfoDto,
             truck.getMaxLoadKg(),
             truck.getNumberOfAxles(),
-            truck.getHasRefrigerationUnit()
+            truck.getHasRefrigerationUnit(),
+            truck.getFleetManager().getId()
         );
     }
 }

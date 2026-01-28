@@ -14,5 +14,6 @@ public record CreateTruckDto(
     @Valid @NotNull PowertrainInformationDto powertrainInformation,
     @Min(1) Integer maxLoadKg,
     @Min(2) Integer numberOfAxles,
-    @NotNull Boolean hasRefrigerationUnit
+    @NotNull Boolean hasRefrigerationUnit,
+    @NotNull Long fleetManagerId
 ) implements Serializable { }

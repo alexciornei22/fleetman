@@ -6,7 +6,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ro.upb.acs.fleetman.common.PaginatedResponseDto;
 import ro.upb.acs.fleetman.common.PaginationMapper;
+import ro.upb.acs.fleetman.employee.fleetmanager.FleetManagerRepository;
 import ro.upb.acs.fleetman.exception.FieldConflictException;
+import ro.upb.acs.fleetman.exception.InvalidResourceReferenceException;
 
 @Service
 public class CarService {
@@ -14,6 +16,7 @@ public class CarService {
     private final CarMapper carMapper;
     private final PaginationMapper paginationMapper;
     private final CarRepository carRepository;
+    private final FleetManagerRepository fleetManagerRepository;
 
     private static final String VIN_UNIQUE_INDEX = "uc_vehicle_vin";
     private static final String LICENSE_PLATE_UNIQUE_INDEX = "uc_vehicle_license_plate";
@@ -23,13 +26,18 @@ public class CarService {
     private static final String LICENSE_PLATE_CONFLICT_ERROR_FIELD = "licensePlate";
     private static final String LICENSE_PLATE_CONFLICT_ERROR_MESSAGE = "A car with the provided license plate already exists.";
 
-    public CarService(CarMapper carMapper, PaginationMapper paginationMapper, CarRepository carRepository) {
+    public CarService(CarMapper carMapper, PaginationMapper paginationMapper, CarRepository carRepository, FleetManagerRepository fleetManagerRepository) {
         this.carMapper = carMapper;
         this.paginationMapper = paginationMapper;
         this.carRepository = carRepository;
+        this.fleetManagerRepository = fleetManagerRepository;
     }
 
     public CarDto createCar(CreateCarDto createCarDto) {
+        if (!fleetManagerRepository.existsById(createCarDto.fleetManagerId())) {
+            throw new InvalidResourceReferenceException("FleetManager", createCarDto.fleetManagerId().toString());
+        }
+
         var car = carMapper.toEntity(createCarDto);
 
         try {

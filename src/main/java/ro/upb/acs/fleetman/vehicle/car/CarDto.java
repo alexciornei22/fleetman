@@ -14,5 +14,6 @@ public record CarDto(
     Integer numberOfDoors,
     Boolean isChildSeatCompatible,
     Boolean hasSunroof,
-    CarBodyType carBodyType
+    CarBodyType carBodyType,
+    Long fleetManagerId
 ) implements Serializable { }

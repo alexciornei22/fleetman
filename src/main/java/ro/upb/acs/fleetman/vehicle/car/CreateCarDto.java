@@ -16,5 +16,6 @@ public record CreateCarDto(
     @Min(1) Integer numberOfDoors,
     @NotNull Boolean isChildSeatCompatible,
     @NotNull Boolean hasSunroof,
-    @NotNull CarBodyType carBodyType
+    @NotNull CarBodyType carBodyType,
+    @NotNull Long fleetManagerId
 ) implements Serializable { }

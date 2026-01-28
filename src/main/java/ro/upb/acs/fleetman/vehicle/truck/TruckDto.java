@@ -12,5 +12,6 @@ public record TruckDto(
     PowertrainInformationDto powertrainInformation,
     Integer maxLoadKg,
     Integer numberOfAxles,
-    Boolean hasRefrigerationUnit
+    Boolean hasRefrigerationUnit,
+    Long fleetManagerId
 ) implements Serializable { }

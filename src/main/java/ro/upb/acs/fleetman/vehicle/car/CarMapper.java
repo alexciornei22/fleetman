@@ -1,6 +1,7 @@
 package ro.upb.acs.fleetman.vehicle.car;
 
 import org.springframework.stereotype.Component;
+import ro.upb.acs.fleetman.employee.fleetmanager.FleetManager;
 import ro.upb.acs.fleetman.vehicle.base.PowertrainInformation;
 import ro.upb.acs.fleetman.vehicle.base.PowertrainInformationDto;
 
@@ -29,6 +30,10 @@ public class CarMapper {
         car.setHasSunroof(request.hasSunroof());
         car.setCarBodyType(request.carBodyType());
 
+        FleetManager fleetManager = new FleetManager();
+        fleetManager.setId(request.fleetManagerId());
+        car.setFleetManager(fleetManager);
+
         return car;
     }
 
@@ -52,7 +57,8 @@ public class CarMapper {
             car.getNumberOfDoors(),
             car.isChildSeatCompatible(),
             car.getHasSunroof(),
-            car.getCarBodyType()
+            car.getCarBodyType(),
+            car.getFleetManager().getId()
         );
     }
 }
