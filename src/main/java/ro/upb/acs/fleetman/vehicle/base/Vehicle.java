@@ -1,6 +1,7 @@
 package ro.upb.acs.fleetman.vehicle.base;
 
 import jakarta.persistence.*;
+import ro.upb.acs.fleetman.employee.fleetmanager.FleetManager;
 import ro.upb.acs.fleetman.trip.Trip;
 
 import java.util.List;
@@ -25,6 +26,9 @@ public abstract class Vehicle {
 
     @Embedded
     private PowertrainInformation powertrainInformation;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private FleetManager fleetManager;
 
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Trip> trips;
@@ -67,6 +71,14 @@ public abstract class Vehicle {
 
     public void setPowertrainInformation(PowertrainInformation powertrainInformation) {
         this.powertrainInformation = powertrainInformation;
+    }
+
+    public FleetManager getFleetManager() {
+        return fleetManager;
+    }
+
+    public void setFleetManager(FleetManager fleetManager) {
+        this.fleetManager = fleetManager;
     }
 
     public List<Trip> getTrips() {
