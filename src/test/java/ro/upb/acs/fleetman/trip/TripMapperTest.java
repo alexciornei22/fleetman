@@ -3,6 +3,7 @@ package ro.upb.acs.fleetman.trip;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import ro.upb.acs.fleetman.employee.driver.Driver;
@@ -95,6 +96,55 @@ class TripMapperTest {
             assertEquals(start, dto.startLocation());
             assertEquals(end, dto.endLocation());
             assertEquals(TripStatus.COMPLETED, dto.status());
+        }
+    }
+
+    @Nested
+    @DisplayName("updateEntity(Update) Tests")
+    class UpdateEntityUpdateTests {
+
+        @Test
+        @DisplayName("Should update existing trip with UpdateTripDto and new vehicle/driver")
+        void shouldUpdateExistingTripWithUpdateTripDto() {
+            Trip trip = new Trip();
+            trip.setVehicle(vehicle);
+            trip.setDriver(driver);
+            trip.setStartLocation("OldStart");
+            trip.setEndLocation("OldEnd");
+            trip.setStartTime(LocalDateTime.of(2025, 1, 1, 6, 0));
+            trip.setEndTime(LocalDateTime.of(2025, 1, 1, 7, 0));
+            trip.setDistanceKm(80.0);
+            trip.setStatus(TripStatus.SCHEDULED);
+            trip.setNotes("Old notes");
+
+            Vehicle updatedVehicle = new Car();
+            updatedVehicle.setId(99L);
+            Driver updatedDriver = new Driver();
+            updatedDriver.setId(77L);
+
+            UpdateTripDto updateTripDto = new UpdateTripDto(
+                updatedVehicle.getId(),
+                updatedDriver.getId(),
+                "NewStart",
+                "NewEnd",
+                LocalDateTime.of(2026, 2, 2, 8, 0),
+                LocalDateTime.of(2026, 2, 2, 12, 0),
+                200.0,
+                TripStatus.IN_PROGRESS,
+                "Updated notes"
+            );
+
+            mapper.updateEntity(updateTripDto, trip, updatedVehicle, updatedDriver);
+
+            assertEquals(updatedVehicle, trip.getVehicle());
+            assertEquals(updatedDriver, trip.getDriver());
+            assertEquals("NewStart", trip.getStartLocation());
+            assertEquals("NewEnd", trip.getEndLocation());
+            assertEquals(LocalDateTime.of(2026, 2, 2, 8, 0), trip.getStartTime());
+            assertEquals(LocalDateTime.of(2026, 2, 2, 12, 0), trip.getEndTime());
+            assertEquals(200.0, trip.getDistanceKm());
+            assertEquals(TripStatus.IN_PROGRESS, trip.getStatus());
+            assertEquals("Updated notes", trip.getNotes());
         }
     }
 }

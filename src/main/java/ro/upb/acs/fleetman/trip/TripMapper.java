@@ -21,6 +21,18 @@ public class TripMapper {
         return trip;
     }
 
+    public void updateEntity(UpdateTripDto request, Trip trip, Vehicle vehicle, Driver driver) {
+        trip.setVehicle(vehicle);
+        trip.setDriver(driver);
+        trip.setStartLocation(request.startLocation());
+        trip.setEndLocation(request.endLocation());
+        trip.setStartTime(request.startTime());
+        trip.setEndTime(request.endTime());
+        trip.setDistanceKm(request.distanceKm());
+        trip.setStatus(request.status());
+        trip.setNotes(request.notes());
+    }
+
     public TripDto toDto(Trip trip) {
         return new TripDto(
             trip.getId(),

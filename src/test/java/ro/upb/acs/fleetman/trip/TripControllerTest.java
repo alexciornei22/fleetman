@@ -25,6 +25,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -196,6 +197,76 @@ public class TripControllerTest {
         }
     }
 
+    @Nested
+    @DisplayName("updateTrip Tests")
+    class UpdateTripTests {
+
+        @Test
+        @DisplayName("Should update trip successfully")
+        void shouldUpdateTripSuccessfully() throws Exception {
+            TripDto dto = tripDto();
+            UpdateTripDto request = updateTripDto();
+
+            when(tripService.updateTrip(eq(1L), any(UpdateTripDto.class))).thenReturn(dto);
+
+            mockMvc.perform(put("/api/trips/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(dto.id()))
+                .andExpect(jsonPath("$.vehicleId").value(dto.vehicleId()))
+                .andExpect(jsonPath("$.driverId").value(dto.driverId()))
+                .andExpect(jsonPath("$.status").value(dto.status().name()));
+
+            verify(tripService).updateTrip(eq(1L), any(UpdateTripDto.class));
+        }
+
+        @Test
+        @DisplayName("Should return not found when trip missing")
+        void shouldReturnNotFoundWhenTripMissing() throws Exception {
+            UpdateTripDto request = updateTripDto();
+            when(tripService.updateTrip(eq(1L), any(UpdateTripDto.class)))
+                .thenThrow(new ResourceNotFoundException("Trip", "1"));
+
+            mockMvc.perform(put("/api/trips/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.resourceType").value("Trip"))
+                .andExpect(jsonPath("$.resourceId").value(1L));
+        }
+
+        @Test
+        @DisplayName("Should return unprocessable when vehicle missing")
+        void shouldReturnUnprocessableWhenVehicleMissing() throws Exception {
+            UpdateTripDto request = updateTripDto();
+            when(tripService.updateTrip(eq(1L), any(UpdateTripDto.class)))
+                .thenThrow(new InvalidResourceReferenceException("Vehicle", "99"));
+
+            mockMvc.perform(put("/api/trips/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.resourceType").value("Vehicle"))
+                .andExpect(jsonPath("$.resourceId").value("99"));
+        }
+
+        @Test
+        @DisplayName("Should return unprocessable when driver missing")
+        void shouldReturnUnprocessableWhenDriverMissing() throws Exception {
+            UpdateTripDto request = updateTripDto();
+            when(tripService.updateTrip(eq(1L), any(UpdateTripDto.class)))
+                .thenThrow(new InvalidResourceReferenceException("Driver", "77"));
+
+            mockMvc.perform(put("/api/trips/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.resourceType").value("Driver"))
+                .andExpect(jsonPath("$.resourceId").value("77"));
+        }
+    }
+
     private CreateTripDto createTripDto() {
         return new CreateTripDto(
             1L,
@@ -222,6 +293,20 @@ public class TripControllerTest {
             150.0,
             TripStatus.SCHEDULED,
             "Notes"
+        );
+    }
+
+    private UpdateTripDto updateTripDto() {
+        return new UpdateTripDto(
+            1L,
+            1L,
+            "City A",
+            "City C",
+            LocalDateTime.of(2026, 1, 2, 8, 0),
+            LocalDateTime.of(2026, 1, 2, 11, 0),
+            180.0,
+            TripStatus.IN_PROGRESS,
+            "Updated notes"
         );
     }
 }

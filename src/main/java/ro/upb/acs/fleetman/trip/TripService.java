@@ -51,6 +51,20 @@ public class TripService {
         return tripMapper.toDto(newTrip);
     }
 
+    public TripDto updateTrip(Long id, UpdateTripDto updateTripDto) {
+        Trip trip = tripRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Trip", id.toString()));
+
+        Vehicle vehicle = vehicleRepository.findById(updateTripDto.vehicleId())
+            .orElseThrow(() -> new InvalidResourceReferenceException("Vehicle", updateTripDto.vehicleId().toString()));
+
+        Driver driver = driverRepository.findById(updateTripDto.driverId())
+            .orElseThrow(() -> new InvalidResourceReferenceException("Driver", updateTripDto.driverId().toString()));
+
+        tripMapper.updateEntity(updateTripDto, trip, vehicle, driver);
+        return tripMapper.toDto(tripRepository.save(trip));
+    }
+
     public PaginatedResponseDto<TripDto> getAllTrips(Pageable pageable) {
         Page<TripDto> page = tripRepository.findAll(pageable).map(tripMapper::toDto);
         return paginationMapper.toPaginatedResponse(page);

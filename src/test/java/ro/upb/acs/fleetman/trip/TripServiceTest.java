@@ -276,6 +276,70 @@ class TripServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("updateTrip Tests")
+    class UpdateTripTests {
+
+        @Test
+        @DisplayName("Should update trip successfully")
+        void shouldUpdateTripSuccessfully() {
+            UpdateTripDto request = updateTripDto();
+            when(tripRepository.findById(3L)).thenReturn(Optional.of(trip));
+            when(vehicleRepository.findById(request.vehicleId())).thenReturn(Optional.of(vehicle));
+            when(driverRepository.findById(request.driverId())).thenReturn(Optional.of(driver));
+            doNothing().when(tripMapper).updateEntity(request, trip, vehicle, driver);
+            when(tripRepository.save(trip)).thenReturn(trip);
+            when(tripMapper.toDto(trip)).thenReturn(tripDto);
+
+            TripDto result = tripService.updateTrip(3L, request);
+
+            assertEquals(tripDto, result);
+            verify(tripRepository).findById(3L);
+            verify(vehicleRepository).findById(request.vehicleId());
+            verify(driverRepository).findById(request.driverId());
+            verify(tripMapper).updateEntity(request, trip, vehicle, driver);
+            verify(tripRepository).save(trip);
+        }
+
+        @Test
+        @DisplayName("Should throw ResourceNotFoundException when trip missing")
+        void shouldThrowResourceNotFoundWhenTripMissing() {
+            when(tripRepository.findById(3L)).thenReturn(Optional.empty());
+
+            assertThrows(ResourceNotFoundException.class, () -> tripService.updateTrip(3L, updateTripDto()));
+
+            verify(tripRepository).findById(3L);
+            verify(vehicleRepository, never()).findById(anyLong());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidResourceReferenceException when vehicle missing")
+        void shouldThrowInvalidResourceReferenceWhenVehicleMissing() {
+            UpdateTripDto request = updateTripDto();
+            when(tripRepository.findById(3L)).thenReturn(Optional.of(trip));
+            when(vehicleRepository.findById(request.vehicleId())).thenReturn(Optional.empty());
+
+            assertThrows(InvalidResourceReferenceException.class, () -> tripService.updateTrip(3L, request));
+
+            verify(vehicleRepository).findById(request.vehicleId());
+            verify(driverRepository, never()).findById(anyLong());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidResourceReferenceException when driver missing")
+        void shouldThrowInvalidResourceReferenceWhenDriverMissing() {
+            UpdateTripDto request = updateTripDto();
+            when(tripRepository.findById(3L)).thenReturn(Optional.of(trip));
+            when(vehicleRepository.findById(request.vehicleId())).thenReturn(Optional.of(vehicle));
+            when(driverRepository.findById(request.driverId())).thenReturn(Optional.empty());
+
+            assertThrows(InvalidResourceReferenceException.class, () -> tripService.updateTrip(3L, request));
+
+            verify(driverRepository).findById(request.driverId());
+            verify(tripRepository, never()).save(any());
+        }
+    }
+
     private CreateTripDto createTripDto() {
         return new CreateTripDto(
             vehicle.getId(),
@@ -287,6 +351,20 @@ class TripServiceTest {
             120.0,
             TripStatus.COMPLETED,
             "Notes"
+        );
+    }
+
+    private UpdateTripDto updateTripDto() {
+        return new UpdateTripDto(
+            vehicle.getId(),
+            driver.getId(),
+            "A",
+            "C",
+            LocalDateTime.of(2026, 1, 2, 8, 0),
+            LocalDateTime.of(2026, 1, 2, 12, 0),
+            200.0,
+            TripStatus.IN_PROGRESS,
+            "Updated notes"
         );
     }
 }

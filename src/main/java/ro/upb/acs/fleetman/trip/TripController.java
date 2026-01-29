@@ -24,6 +24,12 @@ public class TripController {
         return tripService.createTrip(createTripDto);
     }
 
+    @PutMapping("/{id}")
+    @LogResponse
+    public TripDto updateTrip(@PathVariable Long id, @Validated @RequestBody UpdateTripDto updateTripDto) {
+        return tripService.updateTrip(id, updateTripDto);
+    }
+
     @GetMapping
     @LogResponse
     public PaginatedResponseDto<TripDto> getAllTrips(Pageable pageable) {
