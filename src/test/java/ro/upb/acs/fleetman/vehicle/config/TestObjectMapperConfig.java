@@ -1,4 +1,4 @@
-package ro.upb.acs.fleetman.vehicle.car;
+package ro.upb.acs.fleetman.vehicle.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;

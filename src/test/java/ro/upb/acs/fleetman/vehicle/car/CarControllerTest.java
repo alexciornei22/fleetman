@@ -15,6 +15,7 @@ import ro.upb.acs.fleetman.exception.FieldConflictException;
 import ro.upb.acs.fleetman.exception.InvalidResourceReferenceException;
 import ro.upb.acs.fleetman.vehicle.base.EngineType;
 import ro.upb.acs.fleetman.vehicle.base.PowertrainInformationDto;
+import ro.upb.acs.fleetman.vehicle.config.TestObjectMapperConfig;
 
 import java.util.List;
 
