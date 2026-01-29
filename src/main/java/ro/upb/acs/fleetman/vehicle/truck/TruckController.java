@@ -24,6 +24,12 @@ public class TruckController {
         return truckService.createTruck(createTruckDto);
     }
 
+    @PutMapping("/{id}")
+    @LogResponse
+    public TruckDto updateTruck(@PathVariable Long id, @Validated @RequestBody UpdateTruckDto updateTruckDto) {
+        return truckService.updateTruck(id, updateTruckDto);
+    }
+
     @GetMapping
     @LogResponse
     public PaginatedResponseDto<TruckDto> getAllTrucks(Pageable pageable) {

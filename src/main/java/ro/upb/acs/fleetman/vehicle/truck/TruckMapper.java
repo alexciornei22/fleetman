@@ -35,6 +35,25 @@ public class TruckMapper {
         return truck;
     }
 
+    public void updateEntity(UpdateTruckDto request, Truck existing) {
+        existing.setVin(request.vin());
+        existing.setLicensePlate(request.licensePlate());
+        existing.setMileage(request.mileage());
+
+        var powertrainInfo = new PowertrainInformation();
+        var powertrainInfoDto = request.powertrainInformation();
+        powertrainInfo.setEngineType(powertrainInfoDto.engineType());
+        powertrainInfo.setHorsepower(powertrainInfoDto.horsepower());
+        powertrainInfo.setFuelCapacityLiters(powertrainInfoDto.fuelCapacityLiters());
+        powertrainInfo.setEngineDisplacementCc(powertrainInfoDto.engineDisplacementCc());
+        powertrainInfo.setHasAutomaticTransmission(powertrainInfoDto.hasAutomaticTransmission());
+        existing.setPowertrainInformation(powertrainInfo);
+
+        existing.setMaxLoadKg(request.maxLoadKg());
+        existing.setNumberOfAxles(request.numberOfAxles());
+        existing.setHasRefrigerationUnit(request.hasRefrigerationUnit());
+    }
+
     public TruckDto toDto(Truck truck) {
         var powertrainInfo = truck.getPowertrainInformation();
         var powertrainInfoDto = new PowertrainInformationDto(

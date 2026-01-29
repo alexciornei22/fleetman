@@ -21,6 +21,7 @@ import ro.upb.acs.fleetman.vehicle.config.TestObjectMapperConfig;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -29,6 +30,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -131,12 +133,18 @@ public class TruckControllerTest {
             CreateTruckDto invalidDto = new CreateTruckDto(
                 null,
                 "B-99-XYZ",
-                -1,
-                null,
-                0,
-                1,
-                null,
-                null
+                1500,
+                new PowertrainInformationDto(
+                    EngineType.DIESEL,
+                    220,
+                    90,
+                    2600,
+                    true
+                ),
+                8000,
+                3,
+                true,
+                10L
             );
 
             mockMvc.perform(post("/api/trucks")
@@ -232,6 +240,112 @@ public class TruckControllerTest {
         }
     }
 
+    @Nested
+    @DisplayName("updateTruck Tests")
+    class UpdateTruckTests {
+
+        @Test
+        @DisplayName("Should update truck successfully")
+        void shouldUpdateTruckSuccessfully() throws Exception {
+            TruckDto truckDto = truckDto();
+            UpdateTruckDto updateTruckDto = updateTruckDto();
+
+            when(truckService.updateTruck(eq(1L), any(UpdateTruckDto.class))).thenReturn(truckDto);
+
+            mockMvc.perform(put("/api/trucks/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(updateTruckDto)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(truckDto.id()))
+                .andExpect(jsonPath("$.vin").value(truckDto.vin()))
+                .andExpect(jsonPath("$.licensePlate").value(truckDto.licensePlate()))
+                .andExpect(jsonPath("$.mileage").value(truckDto.mileage()))
+                .andExpect(jsonPath("$.maxLoadKg").value(truckDto.maxLoadKg()))
+                .andExpect(jsonPath("$.numberOfAxles").value(truckDto.numberOfAxles()))
+                .andExpect(jsonPath("$.hasRefrigerationUnit").value(truckDto.hasRefrigerationUnit()))
+                .andExpect(jsonPath("$.fleetManagerId").value(truckDto.fleetManagerId()))
+                .andExpect(jsonPath("$.powertrainInformation.engineType").value(truckDto.powertrainInformation().engineType().toString()))
+                .andExpect(jsonPath("$.powertrainInformation.horsepower").value(truckDto.powertrainInformation().horsepower()))
+                .andExpect(jsonPath("$.powertrainInformation.fuelCapacityLiters").value(truckDto.powertrainInformation().fuelCapacityLiters()))
+                .andExpect(jsonPath("$.powertrainInformation.engineDisplacementCc").value(truckDto.powertrainInformation().engineDisplacementCc()))
+                .andExpect(jsonPath("$.powertrainInformation.hasAutomaticTransmission").value(truckDto.powertrainInformation().hasAutomaticTransmission()));
+
+            verify(truckService).updateTruck(eq(1L), any(UpdateTruckDto.class));
+        }
+
+        @Test
+        @DisplayName("Should return not found when truck to update does not exist")
+        void shouldReturnNotFoundWhenTruckToUpdateDoesNotExist() throws Exception {
+            UpdateTruckDto updateTruckDto = updateTruckDto();
+
+            when(truckService.updateTruck(eq(1L), any(UpdateTruckDto.class)))
+                .thenThrow(new ResourceNotFoundException("Truck", "1"));
+
+            mockMvc.perform(put("/api/trucks/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(updateTruckDto)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.resourceType").value("Truck"))
+                .andExpect(jsonPath("$.resourceId").value(1L))
+                .andExpect(jsonPath("$.message").value("Truck not found with id: 1"));
+
+            verify(truckService).updateTruck(eq(1L), any(UpdateTruckDto.class));
+        }
+
+        @Test
+        @DisplayName("Should return conflict when VIN already exists during update")
+        void shouldReturnConflictWhenVinAlreadyExistsDuringUpdate() throws Exception {
+            UpdateTruckDto updateTruckDto = updateTruckDto();
+
+            when(truckService.updateTruck(eq(1L), any(UpdateTruckDto.class)))
+                .thenThrow(new FieldConflictException("vin", "A truck with the provided VIN already exists."));
+
+            mockMvc.perform(put("/api/trucks/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(updateTruckDto)))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.errorField").value("vin"))
+                .andExpect(jsonPath("$.errorMessage").value("A truck with the provided VIN already exists."));
+
+            verify(truckService).updateTruck(eq(1L), any(UpdateTruckDto.class));
+        }
+
+        @Test
+        @DisplayName("Should return bad request when validation fails during update")
+        void shouldReturnBadRequestWhenValidationFailsDuringUpdate() throws Exception {
+            UpdateTruckDto invalidDto = new UpdateTruckDto(
+                null,
+                "B-88-TRK",
+                2000,
+                new PowertrainInformationDto(
+                    EngineType.DIESEL,
+                    180,
+                    70,
+                    2400,
+                    true
+                ),
+                9000,
+                3,
+                true
+            );
+
+            mockMvc.perform(put("/api/trucks/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(invalidDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors").isNotEmpty())
+                .andExpect(jsonPath("$.errors[*].errorField").exists())
+                .andExpect(jsonPath("$.errors[*].errorMessage").exists());
+
+            verify(truckService, never()).updateTruck(any(Long.class), any(UpdateTruckDto.class));
+        }
+    }
+
     private CreateTruckDto createTruckDto() {
         return new CreateTruckDto(
             "VIN-456",
@@ -268,6 +382,24 @@ public class TruckControllerTest {
             3,
             true,
             10L
+        );
+    }
+
+    private UpdateTruckDto updateTruckDto() {
+        return new UpdateTruckDto(
+            "VIN-456",
+            "B-88-TRK",
+            6000,
+            new PowertrainInformationDto(
+                EngineType.DIESEL,
+                260,
+                110,
+                3200,
+                false
+            ),
+            12000,
+            4,
+            false
         );
     }
 }

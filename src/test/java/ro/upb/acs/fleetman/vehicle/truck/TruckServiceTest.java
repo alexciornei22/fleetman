@@ -19,9 +19,11 @@ import ro.upb.acs.fleetman.employee.fleetmanager.FleetManager;
 import ro.upb.acs.fleetman.employee.fleetmanager.FleetManagerRepository;
 import ro.upb.acs.fleetman.exception.FieldConflictException;
 import ro.upb.acs.fleetman.exception.InvalidResourceReferenceException;
+import ro.upb.acs.fleetman.exception.ResourceNotFoundException;
 import ro.upb.acs.fleetman.vehicle.base.EngineType;
 import ro.upb.acs.fleetman.vehicle.base.PowertrainInformation;
 import ro.upb.acs.fleetman.vehicle.base.PowertrainInformationDto;
+import org.mockito.Mockito;
 
 import java.util.List;
 
@@ -52,6 +54,7 @@ class TruckServiceTest {
     private CreateTruckDto createTruckDto;
     private Truck truck;
     private TruckDto truckDto;
+    private UpdateTruckDto updateTruckDto;
 
     @BeforeEach
     void setUp() {
@@ -105,6 +108,16 @@ class TruckServiceTest {
             createTruckDto.numberOfAxles(),
             createTruckDto.hasRefrigerationUnit(),
             1L
+        );
+
+        updateTruckDto = new UpdateTruckDto(
+            "1HGCM82633A456789",
+            "B-456-TRK",
+            26000,
+            new PowertrainInformationDto(EngineType.DIESEL, 320, 160, 5200, true),
+            16000,
+            5,
+            false
         );
     }
 
@@ -227,6 +240,63 @@ class TruckServiceTest {
     }
 
     @Nested
+    @DisplayName("updateTruck Tests")
+    class UpdateTruckTests {
+
+        @Test
+        @DisplayName("Should update truck successfully")
+        void shouldUpdateTruckSuccessfully() {
+            when(truckRepository.findById(1L)).thenReturn(java.util.Optional.of(truck));
+            doNothing().when(truckMapper).updateEntity(updateTruckDto, truck);
+            when(truckRepository.save(truck)).thenReturn(truck);
+            when(truckMapper.toDto(truck)).thenReturn(truckDto);
+
+            TruckDto result = truckService.updateTruck(1L, updateTruckDto);
+
+            assertEquals(truckDto, result);
+            verify(truckRepository).findById(1L);
+            verify(truckMapper).updateEntity(updateTruckDto, truck);
+            verify(truckRepository).save(truck);
+            verify(truckMapper).toDto(truck);
+        }
+
+        @Test
+        @DisplayName("Should throw ResourceNotFoundException when truck missing")
+        void shouldThrowResourceNotFoundWhenTruckMissing() {
+            when(truckRepository.findById(1L)).thenReturn(java.util.Optional.empty());
+
+            assertThrows(ResourceNotFoundException.class, () -> truckService.updateTruck(1L, updateTruckDto));
+
+            verify(truckRepository).findById(1L);
+            verify(truckMapper, never()).updateEntity(any(UpdateTruckDto.class), any(Truck.class));
+        }
+
+        @Test
+        @DisplayName("Should throw FieldConflictException when VIN conflicts on update")
+        void shouldThrowVinConflictOnUpdate() {
+            when(truckRepository.findById(1L)).thenReturn(java.util.Optional.of(truck));
+            doNothing().when(truckMapper).updateEntity(updateTruckDto, truck);
+            when(truckRepository.save(truck)).thenThrow(new DataIntegrityViolationException("uc_vehicle_vin"));
+
+            assertThrows(FieldConflictException.class, () -> truckService.updateTruck(1L, updateTruckDto));
+
+            verify(truckRepository).save(truck);
+        }
+
+        @Test
+        @DisplayName("Should throw FieldConflictException when license plate conflicts on update")
+        void shouldThrowLicenseConflictOnUpdate() {
+            when(truckRepository.findById(1L)).thenReturn(java.util.Optional.of(truck));
+            doNothing().when(truckMapper).updateEntity(updateTruckDto, truck);
+            when(truckRepository.save(truck)).thenThrow(new DataIntegrityViolationException("uc_vehicle_license_plate"));
+
+            assertThrows(FieldConflictException.class, () -> truckService.updateTruck(1L, updateTruckDto));
+
+            verify(truckRepository).save(truck);
+        }
+    }
+
+    @Nested
     @DisplayName("getAllTrucks Tests")
     class GetAllTrucksTests {
 
@@ -249,7 +319,7 @@ class TruckServiceTest {
 
             when(truckRepository.findAll(pageable)).thenReturn(truckPage);
             when(truckMapper.toDto(truck)).thenReturn(truckDto);
-            when(paginationMapper.toPaginatedResponse(any(Page.class))).thenReturn(expectedResponse);
+            when(paginationMapper.toPaginatedResponse(Mockito.<Page<TruckDto>>any())).thenReturn(expectedResponse);
 
             PaginatedResponseDto<TruckDto> result = truckService.getAllTrucks(pageable);
 
@@ -262,7 +332,7 @@ class TruckServiceTest {
             assertEquals(1, result.totalPages());
 
             verify(truckRepository, times(1)).findAll(pageable);
-            verify(paginationMapper, times(1)).toPaginatedResponse(any(Page.class));
+            verify(paginationMapper, times(1)).toPaginatedResponse(Mockito.<Page<TruckDto>>any());
         }
 
         @Test
@@ -281,7 +351,7 @@ class TruckServiceTest {
             );
 
             when(truckRepository.findAll(pageable)).thenReturn(emptyPage);
-            when(paginationMapper.toPaginatedResponse(any(Page.class))).thenReturn(emptyResponse);
+            when(paginationMapper.toPaginatedResponse(Mockito.<Page<TruckDto>>any())).thenReturn(emptyResponse);
 
             PaginatedResponseDto<TruckDto> result = truckService.getAllTrucks(pageable);
 
@@ -290,7 +360,7 @@ class TruckServiceTest {
             assertEquals(0, result.totalElements());
 
             verify(truckRepository, times(1)).findAll(pageable);
-            verify(paginationMapper, times(1)).toPaginatedResponse(any(Page.class));
+            verify(paginationMapper, times(1)).toPaginatedResponse(Mockito.<Page<TruckDto>>any());
         }
 
         @Test
@@ -312,7 +382,7 @@ class TruckServiceTest {
 
             when(truckRepository.findAll(pageable)).thenReturn(truckPage);
             when(truckMapper.toDto(truck)).thenReturn(truckDto);
-            when(paginationMapper.toPaginatedResponse(any(Page.class))).thenReturn(expectedResponse);
+            when(paginationMapper.toPaginatedResponse(Mockito.<Page<TruckDto>>any())).thenReturn(expectedResponse);
 
             PaginatedResponseDto<TruckDto> result = truckService.getAllTrucks(pageable);
 
@@ -323,7 +393,7 @@ class TruckServiceTest {
             assertEquals(3, result.totalPages());
 
             verify(truckRepository, times(1)).findAll(pageable);
-            verify(paginationMapper, times(1)).toPaginatedResponse(any(Page.class));
+            verify(paginationMapper, times(1)).toPaginatedResponse(Mockito.<Page<TruckDto>>any());
         }
     }
 

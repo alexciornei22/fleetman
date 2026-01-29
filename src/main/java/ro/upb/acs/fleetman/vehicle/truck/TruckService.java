@@ -9,6 +9,7 @@ import ro.upb.acs.fleetman.common.PaginationMapper;
 import ro.upb.acs.fleetman.employee.fleetmanager.FleetManagerRepository;
 import ro.upb.acs.fleetman.exception.FieldConflictException;
 import ro.upb.acs.fleetman.exception.InvalidResourceReferenceException;
+import ro.upb.acs.fleetman.exception.ResourceNotFoundException;
 
 @Service
 public class TruckService {
@@ -43,13 +44,20 @@ public class TruckService {
         try {
             return truckMapper.toDto(truckRepository.save(truck));
         } catch (DataIntegrityViolationException e) {
-            if (e.getMessage().contains(VIN_UNIQUE_INDEX)) {
-                throw new FieldConflictException(VIN_CONFLICT_ERROR_FIELD, VIN_CONFLICT_ERROR_MESSAGE);
-            }
-            if (e.getMessage().contains(LICENSE_PLATE_UNIQUE_INDEX)) {
-                throw new FieldConflictException(LICENSE_PLATE_CONFLICT_ERROR_FIELD, LICENSE_PLATE_CONFLICT_ERROR_MESSAGE);
-            }
-            throw new RuntimeException(e);
+            throw handleUniqueConstraint(e);
+        }
+    }
+
+    public TruckDto updateTruck(Long id, UpdateTruckDto updateTruckDto) {
+        Truck truck = truckRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Truck", id.toString()));
+
+        truckMapper.updateEntity(updateTruckDto, truck);
+
+        try {
+            return truckMapper.toDto(truckRepository.save(truck));
+        } catch (DataIntegrityViolationException e) {
+            throw handleUniqueConstraint(e);
         }
     }
 
@@ -60,5 +68,15 @@ public class TruckService {
 
     public void deleteTruck(Long id) {
         truckRepository.deleteById(id);
+    }
+
+    private FieldConflictException handleUniqueConstraint(DataIntegrityViolationException e) {
+        if (e.getMessage().contains(VIN_UNIQUE_INDEX)) {
+            return new FieldConflictException(VIN_CONFLICT_ERROR_FIELD, VIN_CONFLICT_ERROR_MESSAGE);
+        }
+        if (e.getMessage().contains(LICENSE_PLATE_UNIQUE_INDEX)) {
+            return new FieldConflictException(LICENSE_PLATE_CONFLICT_ERROR_FIELD, LICENSE_PLATE_CONFLICT_ERROR_MESSAGE);
+        }
+        throw new RuntimeException(e);
     }
 }
