@@ -2,6 +2,7 @@ package ro.upb.acs.fleetman.email;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import ro.upb.acs.fleetman.trip.Trip;
 
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Service
 public class EmailService {
@@ -20,16 +22,18 @@ public class EmailService {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private final JavaMailSender mailSender;
+    private final Executor executor;
 
-    public EmailService(JavaMailSender mailSender) {
+    public EmailService(JavaMailSender mailSender, @Qualifier("emailTaskExecutor") Executor executor) {
         this.mailSender = mailSender;
+        this.executor = executor;
     }
 
     public void sendTripCreatedNotification(Trip trip, Driver driver, FleetManager fleetManager) {
         logger.info("Starting to send trip creation emails on thread: {}", Thread.currentThread().getName());
 
-        CompletableFuture.runAsync(() -> sendEmailToDriver(trip, driver));
-        CompletableFuture.runAsync(() -> sendEmailToFleetManager(trip, fleetManager));
+        CompletableFuture.runAsync(() -> sendEmailToDriver(trip, driver), executor);
+        CompletableFuture.runAsync(() -> sendEmailToFleetManager(trip, fleetManager), executor);
     }
 
     private void sendEmailToDriver(Trip trip, Driver driver) {
