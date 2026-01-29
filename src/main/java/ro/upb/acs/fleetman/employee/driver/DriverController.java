@@ -24,6 +24,12 @@ public class DriverController {
         return driverService.createDriver(createDriverDto);
     }
 
+    @PutMapping("/{id}")
+    @LogResponse
+    public DriverDto updateDriver(@PathVariable Long id, @Validated @RequestBody UpdateDriverDto updateDriverDto) {
+        return driverService.updateDriver(id, updateDriverDto);
+    }
+
     @GetMapping
     @LogResponse
     public PaginatedResponseDto<DriverDto> getAllDrivers(Pageable pageable) {

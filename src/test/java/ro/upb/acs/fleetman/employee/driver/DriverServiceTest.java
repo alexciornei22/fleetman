@@ -16,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import ro.upb.acs.fleetman.common.PaginatedResponseDto;
 import ro.upb.acs.fleetman.common.PaginationMapper;
 import ro.upb.acs.fleetman.exception.FieldConflictException;
+import ro.upb.acs.fleetman.exception.ResourceNotFoundException;
+import org.mockito.Mockito;
 
 import java.sql.Date;
 import java.util.List;
@@ -222,7 +224,7 @@ class DriverServiceTest {
 
             when(driverRepository.findAll(pageable)).thenReturn(driverPage);
             when(driverMapper.toDto(driver)).thenReturn(driverDto);
-            when(paginationMapper.toPaginatedResponse(any(Page.class))).thenReturn(expectedResponse);
+            when(paginationMapper.toPaginatedResponse(Mockito.<Page<DriverDto>>any())).thenReturn(expectedResponse);
 
             PaginatedResponseDto<DriverDto> result = driverService.getAllDrivers(pageable);
 
@@ -235,7 +237,7 @@ class DriverServiceTest {
             assertEquals(1, result.totalPages());
 
             verify(driverRepository, times(1)).findAll(pageable);
-            verify(paginationMapper, times(1)).toPaginatedResponse(any(Page.class));
+            verify(paginationMapper, times(1)).toPaginatedResponse(Mockito.<Page<DriverDto>>any());
         }
 
         @Test
@@ -254,7 +256,7 @@ class DriverServiceTest {
             );
 
             when(driverRepository.findAll(pageable)).thenReturn(emptyPage);
-            when(paginationMapper.toPaginatedResponse(any(Page.class))).thenReturn(emptyResponse);
+            when(paginationMapper.toPaginatedResponse(Mockito.<Page<DriverDto>>any())).thenReturn(emptyResponse);
 
             PaginatedResponseDto<DriverDto> result = driverService.getAllDrivers(pageable);
 
@@ -263,7 +265,7 @@ class DriverServiceTest {
             assertEquals(0, result.totalElements());
 
             verify(driverRepository, times(1)).findAll(pageable);
-            verify(paginationMapper, times(1)).toPaginatedResponse(any(Page.class));
+            verify(paginationMapper, times(1)).toPaginatedResponse(Mockito.<Page<DriverDto>>any());
         }
 
         @Test
@@ -285,7 +287,7 @@ class DriverServiceTest {
 
             when(driverRepository.findAll(pageable)).thenReturn(driverPage);
             when(driverMapper.toDto(driver)).thenReturn(driverDto);
-            when(paginationMapper.toPaginatedResponse(any(Page.class))).thenReturn(expectedResponse);
+            when(paginationMapper.toPaginatedResponse(Mockito.<Page<DriverDto>>any())).thenReturn(expectedResponse);
 
             PaginatedResponseDto<DriverDto> result = driverService.getAllDrivers(pageable);
 
@@ -296,7 +298,7 @@ class DriverServiceTest {
             assertEquals(3, result.totalPages());
 
             verify(driverRepository, times(1)).findAll(pageable);
-            verify(paginationMapper, times(1)).toPaginatedResponse(any(Page.class));
+            verify(paginationMapper, times(1)).toPaginatedResponse(Mockito.<Page<DriverDto>>any());
         }
     }
 
@@ -336,5 +338,85 @@ class DriverServiceTest {
             verify(driverRepository, times(1)).deleteById(eq(42L));
             verifyNoMoreInteractions(driverRepository);
         }
+    }
+
+    @Nested
+    @DisplayName("updateDriver Tests")
+    class UpdateDriverTests {
+
+        @Test
+        @DisplayName("Should update driver successfully")
+        void shouldUpdateDriverSuccessfully() {
+            when(driverRepository.findById(1L)).thenReturn(java.util.Optional.of(driver));
+            doNothing().when(driverMapper).updateEntity(any(UpdateDriverDto.class), eq(driver));
+            when(driverRepository.save(driver)).thenReturn(driver);
+            when(driverMapper.toDto(driver)).thenReturn(driverDto);
+
+            DriverDto result = driverService.updateDriver(1L, updateDriverDto());
+
+            assertEquals(driverDto, result);
+            verify(driverRepository).findById(1L);
+            verify(driverMapper).updateEntity(any(UpdateDriverDto.class), eq(driver));
+            verify(driverRepository).save(driver);
+        }
+
+        @Test
+        @DisplayName("Should throw ResourceNotFoundException when driver missing")
+        void shouldThrowResourceNotFoundWhenDriverMissing() {
+            when(driverRepository.findById(1L)).thenReturn(java.util.Optional.empty());
+
+            assertThrows(ResourceNotFoundException.class, () -> driverService.updateDriver(1L, updateDriverDto()));
+
+            verify(driverRepository).findById(1L);
+            verify(driverMapper, never()).updateEntity(any(UpdateDriverDto.class), any(Driver.class));
+        }
+
+        @Test
+        @DisplayName("Should throw FieldConflictException when employee code conflicts on update")
+        void shouldThrowEmployeeCodeConflictOnUpdate() {
+            when(driverRepository.findById(1L)).thenReturn(java.util.Optional.of(driver));
+            doNothing().when(driverMapper).updateEntity(any(UpdateDriverDto.class), eq(driver));
+            when(driverRepository.save(driver)).thenThrow(new DataIntegrityViolationException("uc_employee_employee_code"));
+
+            assertThrows(FieldConflictException.class, () -> driverService.updateDriver(1L, updateDriverDto()));
+        }
+
+        @Test
+        @DisplayName("Should throw FieldConflictException when email conflicts on update")
+        void shouldThrowEmailConflictOnUpdate() {
+            when(driverRepository.findById(1L)).thenReturn(java.util.Optional.of(driver));
+            doNothing().when(driverMapper).updateEntity(any(UpdateDriverDto.class), eq(driver));
+            when(driverRepository.save(driver)).thenThrow(new DataIntegrityViolationException("uc_employee_email"));
+
+            assertThrows(FieldConflictException.class, () -> driverService.updateDriver(1L, updateDriverDto()));
+        }
+
+        @Test
+        @DisplayName("Should throw FieldConflictException when tachograph card conflicts on update")
+        void shouldThrowTachographConflictOnUpdate() {
+            when(driverRepository.findById(1L)).thenReturn(java.util.Optional.of(driver));
+            doNothing().when(driverMapper).updateEntity(any(UpdateDriverDto.class), eq(driver));
+            when(driverRepository.save(driver)).thenThrow(new DataIntegrityViolationException("uc_driver_tachograph_card_number"));
+
+            assertThrows(FieldConflictException.class, () -> driverService.updateDriver(1L, updateDriverDto()));
+        }
+    }
+
+    private UpdateDriverDto updateDriverDto() {
+        License license = new License();
+        license.setLicenseType(LicenseType.C);
+        license.setIssueDate(Date.valueOf("2018-02-10"));
+        license.setExpiryDate(Date.valueOf("2028-02-10"));
+
+        return new UpdateDriverDto(
+            "DRV-001",
+            "Johnny",
+            "Doe",
+            "johnny.doe@example.com",
+            "+40123456780",
+            List.of(license),
+            Date.valueOf("2028-12-31"),
+            "TACH-67890"
+        );
     }
 }

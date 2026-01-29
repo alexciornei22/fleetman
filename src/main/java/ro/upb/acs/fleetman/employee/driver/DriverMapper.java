@@ -18,6 +18,17 @@ public class DriverMapper {
         return driver;
     }
 
+    public void updateEntity(UpdateDriverDto request, Driver existing) {
+        existing.setEmployeeCode(request.employeeCode());
+        existing.setFirstName(request.firstName());
+        existing.setLastName(request.lastName());
+        existing.setEmail(request.email());
+        existing.setPhoneNumber(request.phoneNumber());
+        existing.setLicenses(request.licenses());
+        existing.setMedicalCertificateExpiryDate(request.medicalCertificateExpiryDate());
+        existing.setTachographCardNumber(request.tachographCardNumber());
+    }
+
     public DriverDto toDto(Driver driver) {
         return new DriverDto(
             driver.getId(),

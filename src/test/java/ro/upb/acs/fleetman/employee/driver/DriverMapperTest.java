@@ -3,6 +3,7 @@ package ro.upb.acs.fleetman.employee.driver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -22,8 +23,8 @@ class DriverMapperTest {
     }
 
     @Nested
-    @DisplayName("toEntity Tests")
-    class ToEntityTests {
+    @DisplayName("updateEntity(Create) Tests")
+    class UpdateEntityCreateTests {
 
         @ParameterizedTest(name = "{index} - {0}")
         @CsvSource({
@@ -66,6 +67,57 @@ class DriverMapperTest {
             assertEquals(1, result.getLicenses().size());
             assertEquals(LicenseType.B, result.getLicenses().get(0).getLicenseType());
             assertNull(result.getId());
+        }
+    }
+
+    @Nested
+    @DisplayName("updateEntity(Update) Tests")
+    class UpdateEntityUpdateTests {
+
+        @Test
+        @DisplayName("Should update existing driver with UpdateDriverDto")
+        void shouldUpdateExistingDriverWithUpdateDriverDto() {
+            License initialLicense = new License();
+            initialLicense.setLicenseType(LicenseType.B);
+            initialLicense.setIssueDate(Date.valueOf("2020-01-15"));
+            initialLicense.setExpiryDate(Date.valueOf("2030-01-15"));
+
+            Driver existing = new Driver();
+            existing.setEmployeeCode("DRV-INIT");
+            existing.setFirstName("Initial");
+            existing.setLastName("Driver");
+            existing.setEmail("initial@example.com");
+            existing.setPhoneNumber("+40000000000");
+            existing.setLicenses(List.of(initialLicense));
+            existing.setMedicalCertificateExpiryDate(Date.valueOf("2025-01-01"));
+            existing.setTachographCardNumber("TACH-INIT");
+
+            License updatedLicense = new License();
+            updatedLicense.setLicenseType(LicenseType.C);
+            updatedLicense.setIssueDate(Date.valueOf("2018-05-05"));
+            updatedLicense.setExpiryDate(Date.valueOf("2028-05-05"));
+
+            UpdateDriverDto updateDriverDto = new UpdateDriverDto(
+                "DRV-999",
+                "Updated",
+                "Driver",
+                "updated@example.com",
+                "+40999999999",
+                List.of(updatedLicense),
+                Date.valueOf("2029-12-31"),
+                "TACH-UPDATED"
+            );
+
+            driverMapper.updateEntity(updateDriverDto, existing);
+
+            assertEquals("DRV-999", existing.getEmployeeCode());
+            assertEquals("Updated", existing.getFirstName());
+            assertEquals("Driver", existing.getLastName());
+            assertEquals("updated@example.com", existing.getEmail());
+            assertEquals("+40999999999", existing.getPhoneNumber());
+            assertEquals(Date.valueOf("2029-12-31"), existing.getMedicalCertificateExpiryDate());
+            assertEquals("TACH-UPDATED", existing.getTachographCardNumber());
+            assertEquals(LicenseType.C, existing.getLicenses().getFirst().getLicenseType());
         }
     }
 
@@ -113,7 +165,7 @@ class DriverMapperTest {
             assertEquals(Date.valueOf("2028-06-30"), result.medicalCertificateExpiryDate());
             assertNotNull(result.licenses());
             assertEquals(1, result.licenses().size());
-            assertEquals(LicenseType.C, result.licenses().get(0).getLicenseType());
+            assertEquals(LicenseType.C, result.licenses().getFirst().getLicenseType());
         }
     }
 
@@ -159,7 +211,7 @@ class DriverMapperTest {
             assertEquals(createDriverDto.tachographCardNumber(), result.tachographCardNumber());
             assertEquals(createDriverDto.medicalCertificateExpiryDate(), result.medicalCertificateExpiryDate());
             assertEquals(createDriverDto.licenses().size(), result.licenses().size());
-            assertEquals(createDriverDto.licenses().get(0).getLicenseType(), result.licenses().get(0).getLicenseType());
+            assertEquals(createDriverDto.licenses().getFirst().getLicenseType(), result.licenses().getFirst().getLicenseType());
         }
     }
 }

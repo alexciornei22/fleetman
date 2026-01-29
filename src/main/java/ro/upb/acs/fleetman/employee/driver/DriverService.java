@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import ro.upb.acs.fleetman.common.PaginatedResponseDto;
 import ro.upb.acs.fleetman.common.PaginationMapper;
 import ro.upb.acs.fleetman.exception.FieldConflictException;
+import ro.upb.acs.fleetman.exception.ResourceNotFoundException;
 
 @Service
 public class DriverService {
@@ -34,21 +35,15 @@ public class DriverService {
 
     public DriverDto createDriver(CreateDriverDto createDriverDto) {
         var driver = driverMapper.toEntity(createDriverDto);
+        return saveDriver(driver);
+    }
 
-        try {
-            return driverMapper.toDto(driverRepository.save(driver));
-        } catch (DataIntegrityViolationException e) {
-            if (e.getMessage().contains(EMPLOYEE_CODE_UNIQUE_INDEX)) {
-                throw new FieldConflictException(EMPLOYEE_CODE_CONFLICT_ERROR_FIELD, EMPLOYEE_CODE_CONFLICT_ERROR_MESSAGE);
-            }
-            if (e.getMessage().contains(EMAIL_UNIQUE_INDEX)) {
-                throw new FieldConflictException(EMAIL_CONFLICT_ERROR_FIELD, EMAIL_CONFLICT_ERROR_MESSAGE);
-            }
-            if (e.getMessage().contains(TACHOGRAPH_CARD_UNIQUE_INDEX)) {
-                throw new FieldConflictException(TACHOGRAPH_CARD_CONFLICT_ERROR_FIELD, TACHOGRAPH_CARD_CONFLICT_ERROR_MESSAGE);
-            }
-            throw new RuntimeException(e);
-        }
+    public DriverDto updateDriver(Long id, UpdateDriverDto updateDriverDto) {
+        Driver driver = driverRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Driver", id.toString()));
+
+        driverMapper.updateEntity(updateDriverDto, driver);
+        return saveDriver(driver);
     }
 
     public PaginatedResponseDto<DriverDto> getAllDrivers(Pageable pageable) {
@@ -58,5 +53,26 @@ public class DriverService {
 
     public void deleteDriver(Long id) {
         driverRepository.deleteById(id);
+    }
+
+    private DriverDto saveDriver(Driver driver) {
+        try {
+            return driverMapper.toDto(driverRepository.save(driver));
+        } catch (DataIntegrityViolationException e) {
+            throw handleUniqueConstraint(e);
+        }
+    }
+
+    private FieldConflictException handleUniqueConstraint(DataIntegrityViolationException e) {
+        if (e.getMessage().contains(EMPLOYEE_CODE_UNIQUE_INDEX)) {
+            return new FieldConflictException(EMPLOYEE_CODE_CONFLICT_ERROR_FIELD, EMPLOYEE_CODE_CONFLICT_ERROR_MESSAGE);
+        }
+        if (e.getMessage().contains(EMAIL_UNIQUE_INDEX)) {
+            return new FieldConflictException(EMAIL_CONFLICT_ERROR_FIELD, EMAIL_CONFLICT_ERROR_MESSAGE);
+        }
+        if (e.getMessage().contains(TACHOGRAPH_CARD_UNIQUE_INDEX)) {
+            return new FieldConflictException(TACHOGRAPH_CARD_CONFLICT_ERROR_FIELD, TACHOGRAPH_CARD_CONFLICT_ERROR_MESSAGE);
+        }
+        throw new RuntimeException(e);
     }
 }
