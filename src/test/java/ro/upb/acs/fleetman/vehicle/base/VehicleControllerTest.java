@@ -28,7 +28,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @DisplayName("VehicleController Unit Tests")
 @WebMvcTest(VehicleController.class)
-@Import(GlobalExceptionHandler.class)
 public class VehicleControllerTest {
 
     @Autowired
