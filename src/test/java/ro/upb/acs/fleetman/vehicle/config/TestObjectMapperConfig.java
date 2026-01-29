@@ -10,6 +10,8 @@ public class TestObjectMapperConfig {
 
     @Bean
     public ObjectMapper objectMapper() {
-        return JsonMapper.builder().build();
+        return JsonMapper.builder()
+            .findAndAddModules()
+            .build();
     }
 }
