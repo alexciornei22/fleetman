@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mockito;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -19,6 +20,7 @@ import ro.upb.acs.fleetman.employee.fleetmanager.FleetManager;
 import ro.upb.acs.fleetman.employee.fleetmanager.FleetManagerRepository;
 import ro.upb.acs.fleetman.exception.FieldConflictException;
 import ro.upb.acs.fleetman.exception.InvalidResourceReferenceException;
+import ro.upb.acs.fleetman.exception.ResourceNotFoundException;
 import ro.upb.acs.fleetman.vehicle.base.EngineType;
 import ro.upb.acs.fleetman.vehicle.base.PowertrainInformation;
 import ro.upb.acs.fleetman.vehicle.base.PowertrainInformationDto;
@@ -52,6 +54,7 @@ class CarServiceTest {
     private CreateCarDto createCarDto;
     private Car car;
     private CarDto carDto;
+    private UpdateCarDto updateCarDto;
 
     @BeforeEach
     void setUp() {
@@ -111,6 +114,18 @@ class CarServiceTest {
             createCarDto.hasSunroof(),
             createCarDto.carBodyType(),
             1L
+        );
+
+        updateCarDto = new UpdateCarDto(
+            "2HGCM82633A987654",
+            "C-999-XYZ",
+            11000,
+            new PowertrainInformationDto(EngineType.DIESEL, 140, 60, 1800, false),
+            5,
+            4,
+            true,
+            false,
+            CarBodyType.COUPE
         );
     }
 
@@ -229,6 +244,63 @@ class CarServiceTest {
             verify(carMapper, times(1)).toEntity(createCarDto);
             verify(carRepository, times(1)).save(car);
             verify(carMapper, never()).toDto(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("updateCar Tests")
+    class UpdateCarTests {
+
+        @Test
+        @DisplayName("Should update car successfully")
+        void shouldUpdateCarSuccessfully() {
+            when(carRepository.findById(1L)).thenReturn(java.util.Optional.of(car));
+            when(carMapper.toEntity(updateCarDto, car)).thenReturn(car);
+            when(carRepository.save(car)).thenReturn(car);
+            when(carMapper.toDto(car)).thenReturn(carDto);
+
+            CarDto result = carService.updateCar(1L, updateCarDto);
+
+            assertEquals(carDto, result);
+            verify(carRepository).findById(1L);
+            verify(carMapper).toEntity(updateCarDto, car);
+            verify(carRepository).save(car);
+            verify(carMapper).toDto(car);
+        }
+
+        @Test
+        @DisplayName("Should throw ResourceNotFoundException when car does not exist")
+        void shouldThrowResourceNotFoundWhenCarMissing() {
+            when(carRepository.findById(1L)).thenReturn(java.util.Optional.empty());
+
+            assertThrows(ResourceNotFoundException.class, () -> carService.updateCar(1L, updateCarDto));
+
+            verify(carRepository).findById(1L);
+            verify(carMapper, never()).toEntity(any(UpdateCarDto.class), any(Car.class));
+        }
+
+        @Test
+        @DisplayName("Should throw FieldConflictException when VIN conflicts on update")
+        void shouldThrowVinConflictOnUpdate() {
+            when(carRepository.findById(1L)).thenReturn(java.util.Optional.of(car));
+            when(carMapper.toEntity(updateCarDto, car)).thenReturn(car);
+            when(carRepository.save(car)).thenThrow(new DataIntegrityViolationException("uc_vehicle_vin"));
+
+            assertThrows(FieldConflictException.class, () -> carService.updateCar(1L, updateCarDto));
+
+            verify(carRepository).save(car);
+        }
+
+        @Test
+        @DisplayName("Should throw FieldConflictException when license plate conflicts on update")
+        void shouldThrowLicenseConflictOnUpdate() {
+            when(carRepository.findById(1L)).thenReturn(java.util.Optional.of(car));
+            when(carMapper.toEntity(updateCarDto, car)).thenReturn(car);
+            when(carRepository.save(car)).thenThrow(new DataIntegrityViolationException("uc_vehicle_license_plate"));
+
+            assertThrows(FieldConflictException.class, () -> carService.updateCar(1L, updateCarDto));
+
+            verify(carRepository).save(car);
         }
     }
 

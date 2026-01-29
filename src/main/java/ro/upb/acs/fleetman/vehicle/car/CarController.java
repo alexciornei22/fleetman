@@ -24,6 +24,12 @@ public class CarController {
         return carService.createCar(createCarDto);
     }
 
+    @PutMapping("/{id}")
+    @LogResponse
+    public CarDto updateCar(@PathVariable Long id, @Validated @RequestBody UpdateCarDto updateCarDto) {
+        return carService.updateCar(id, updateCarDto);
+    }
+
     @GetMapping
     @LogResponse
     public PaginatedResponseDto<CarDto> getAllCars(Pageable pageable) {

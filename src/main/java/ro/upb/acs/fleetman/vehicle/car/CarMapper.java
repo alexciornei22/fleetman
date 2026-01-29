@@ -14,14 +14,13 @@ public class CarMapper {
         car.setLicensePlate(request.licensePlate());
         car.setMileage(request.mileage());
 
-        var powertrainInfoDto = request.powertrainInformation();
         var powertrainInfo = new PowertrainInformation();
+        var powertrainInfoDto = request.powertrainInformation();
         powertrainInfo.setEngineType(powertrainInfoDto.engineType());
         powertrainInfo.setHorsepower(powertrainInfoDto.horsepower());
         powertrainInfo.setFuelCapacityLiters(powertrainInfoDto.fuelCapacityLiters());
         powertrainInfo.setEngineDisplacementCc(powertrainInfoDto.engineDisplacementCc());
         powertrainInfo.setHasAutomaticTransmission(powertrainInfoDto.hasAutomaticTransmission());
-
         car.setPowertrainInformation(powertrainInfo);
 
         car.setNumberOfSeats(request.numberOfSeats());
@@ -35,6 +34,29 @@ public class CarMapper {
         car.setFleetManager(fleetManager);
 
         return car;
+    }
+
+    public Car toEntity(UpdateCarDto request, Car existing) {
+        existing.setVin(request.vin());
+        existing.setLicensePlate(request.licensePlate());
+        existing.setMileage(request.mileage());
+
+        var powertrainInfo = new PowertrainInformation();
+        var powertrainInfoDto = request.powertrainInformation();
+        powertrainInfo.setEngineType(powertrainInfoDto.engineType());
+        powertrainInfo.setHorsepower(powertrainInfoDto.horsepower());
+        powertrainInfo.setFuelCapacityLiters(powertrainInfoDto.fuelCapacityLiters());
+        powertrainInfo.setEngineDisplacementCc(powertrainInfoDto.engineDisplacementCc());
+        powertrainInfo.setHasAutomaticTransmission(powertrainInfoDto.hasAutomaticTransmission());
+        existing.setPowertrainInformation(powertrainInfo);
+
+        existing.setNumberOfSeats(request.numberOfSeats());
+        existing.setNumberOfDoors(request.numberOfDoors());
+        existing.setIsChildSeatCompatible(request.isChildSeatCompatible());
+        existing.setHasSunroof(request.hasSunroof());
+        existing.setCarBodyType(request.carBodyType());
+
+        return existing;
     }
 
     public CarDto toDto(Car car) {
