@@ -6,6 +6,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ro.upb.acs.fleetman.exception.BatchQueueFullException;
+import ro.upb.acs.fleetman.exception.BatchQueueFullExceptionDto;
 import ro.upb.acs.fleetman.exception.FieldConflictException;
 import ro.upb.acs.fleetman.exception.FieldConflictExceptionDto;
 import ro.upb.acs.fleetman.exception.InvalidResourceReferenceException;
@@ -52,5 +54,11 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public SingleArgumentNotValidDto handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         return new SingleArgumentNotValidDto("requestBody", "Malformed JSON request");
+    }
+
+    @ExceptionHandler(BatchQueueFullException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public BatchQueueFullExceptionDto handleBatchQueueFullException(BatchQueueFullException ex) {
+        return new BatchQueueFullExceptionDto(ex.getCapacity(), ex.getMessage());
     }
 }

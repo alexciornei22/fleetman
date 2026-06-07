@@ -44,6 +44,30 @@ public class TripControllerTest {
     @MockitoBean
     private TripService tripService;
 
+    @MockitoBean
+    private TripBatchService tripBatchService;
+
+    @Nested
+    @DisplayName("createTripBatch Tests")
+    class CreateTripBatchTests {
+
+        @Test
+        @DisplayName("Should queue trips for batch processing")
+        void shouldQueueTripsForBatchProcessing() throws Exception {
+            CreateTripDto request = createTripDto();
+            List<CreateTripDto> list = List.of(request);
+
+            doNothing().when(tripBatchService).queueTripsForImport(anyList());
+
+            mockMvc.perform(post("/api/trips/batch")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(list)))
+                .andExpect(status().isAccepted());
+
+            verify(tripBatchService).queueTripsForImport(anyList());
+        }
+    }
+
     @Nested
     @DisplayName("createTrip Tests")
     class CreateTripTests {

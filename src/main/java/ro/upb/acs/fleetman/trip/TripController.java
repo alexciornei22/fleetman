@@ -7,14 +7,25 @@ import org.springframework.web.bind.annotation.*;
 import ro.upb.acs.fleetman.common.PaginatedResponseDto;
 import ro.upb.acs.fleetman.config.LogResponse;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/trips")
 public class TripController {
 
     private final TripService tripService;
+    private final TripBatchService tripBatchService;
 
-    public TripController(TripService tripService) {
+    public TripController(TripService tripService, TripBatchService tripBatchService) {
         this.tripService = tripService;
+        this.tripBatchService = tripBatchService;
+    }
+
+    @PostMapping("/batch")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @LogResponse
+    public void importTripsBatch(@Validated @RequestBody List<CreateTripDto> trips) {
+        tripBatchService.queueTripsForImport(trips);
     }
 
     @PostMapping
